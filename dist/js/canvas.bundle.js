@@ -175,16 +175,25 @@ canvas.width = innerWidth;
 canvas.height = innerHeight;
 
 var mouse = {
-    x: innerWidth / 2,
-    y: innerHeight / 2
+    x: -innerWidth,
+    y: -innerHeight
 };
 
-var colors = ['#2185C5', '#7ECEFD', '#FF7F66'];
+var colors = ['#D40424', '#FF7F66', '#223040', '#101D29'];
 
 // Event Listeners
 addEventListener('mousemove', function (event) {
     mouse.x = event.clientX;
     mouse.y = event.clientY;
+
+    if (event.clientX < 0 || event.clientX > innerWidth) {
+        mouse.x = -innerWidth / 2;
+        mouse.y = -innerHeight / 2;
+    }
+    if (event.clientY < 0 || event.clientY > innerHeight) {
+        mouse.x = -innerWidth / 2;
+        mouse.y = -innerHeight / 2;
+    }
 });
 
 addEventListener('resize', function () {
@@ -221,11 +230,17 @@ function Particle(x, y, radius, color) {
     this.radius = radius;
     this.color = color;
     this.mass = 1;
+    this.opacity = 0;
 }
 
 Particle.prototype.draw = function () {
     c.beginPath();
     c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+    c.save();
+    c.globalAlpha = this.opacity;
+    c.fillStyle = this.color;
+    c.fill();
+    c.restore();
     c.strokeStyle = this.color;
     c.stroke();
     c.closePath();
@@ -254,6 +269,19 @@ Particle.prototype.update = function (particles) {
         this.velocity.y = -this.velocity.y;
     }
 
+    // Mouse collision detection
+    if (distance(mouse.x, mouse.y, this.x, this.y) < 100) {
+        if (this.opacity < 0.8) {
+            this.opacity += 0.01;
+        }
+    } else {
+        if (this.opacity > 0) {
+            this.opacity -= 0.01;
+
+            this.opacity = Math.max(0, this.opacity);
+        }
+    }
+
     this.x += this.velocity.x;
     this.y += this.velocity.y;
 };
@@ -262,8 +290,8 @@ Particle.prototype.update = function (particles) {
 function init() {
     particles = [];
 
-    for (var i = 0; i < 25; i++) {
-        var radius = 50;
+    for (var i = 0; i < 55; i++) {
+        var radius = 30;
         var x = randomIntFromRange(radius, canvas.width - radius);
         var y = randomIntFromRange(radius, canvas.height - radius);
         var color = randomColor(colors);

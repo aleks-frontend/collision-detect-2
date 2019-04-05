@@ -74,16 +74,25 @@ canvas.width = innerWidth
 canvas.height = innerHeight
 
 const mouse = {
-    x: innerWidth / 2,
-    y: innerHeight / 2
+    x: -innerWidth,
+    y: -innerHeight
 }
 
-const colors = ['#2185C5', '#7ECEFD', '#FF7F66']
+const colors = ['#D40424', '#FF7F66', '#223040', '#101D29']
 
 // Event Listeners
 addEventListener('mousemove', event => {
     mouse.x = event.clientX
     mouse.y = event.clientY
+
+    if ( event.clientX < 0 || event.clientX > innerWidth ) {
+        mouse.x = -innerWidth / 2
+        mouse.y = -innerHeight / 2
+    }
+    if ( event.clientY < 0 || event.clientY > innerHeight ) {
+        mouse.x = -innerWidth / 2
+        mouse.y = -innerHeight / 2
+    }
 })
 
 addEventListener('resize', () => {
@@ -95,18 +104,18 @@ addEventListener('resize', () => {
 
 // Utility Functions
 function randomIntFromRange(min, max) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
+    return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
 function randomColor(colors) {
-    return colors[ Math.floor(Math.random() * colors.length) ];
+    return colors[ Math.floor(Math.random() * colors.length) ]
 }
 
 function distance(x1, y1, x2, y2) {
-    const xDistance = x2 - x1;
-    const yDistance = y2 - y1;
+    const xDistance = x2 - x1
+    const yDistance = y2 - y1
 
-    return Math.sqrt( Math.pow(xDistance, 2) + Math.pow(yDistance, 2) );
+    return Math.sqrt( Math.pow(xDistance, 2) + Math.pow(yDistance, 2) )
 }
 
 // Objects
@@ -120,11 +129,17 @@ function Particle(x, y, radius, color) {
     this.radius = radius
     this.color = color
     this.mass = 1
+    this.opacity = 0
 }
 
 Particle.prototype.draw = function() {
     c.beginPath()
     c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false)
+    c.save()
+    c.globalAlpha = this.opacity
+    c.fillStyle = this.color
+    c.fill()
+    c.restore()
     c.strokeStyle = this.color
     c.stroke()
     c.closePath()
@@ -153,6 +168,19 @@ Particle.prototype.update = function(particles) {
         this.velocity.y = - this.velocity.y
     }
 
+    // Mouse collision detection
+    if ( distance( mouse.x, mouse.y, this.x, this.y ) < 100 ) {
+        if ( this.opacity < 0.8 ) {
+            this.opacity += 0.01
+        }
+    } else {
+        if ( this.opacity > 0 ) {
+            this.opacity -= 0.01
+
+            this.opacity = Math.max(0, this.opacity)
+        }
+    }
+
     this.x += this.velocity.x
     this.y += this.velocity.y
 
@@ -162,8 +190,8 @@ Particle.prototype.update = function(particles) {
 function init() {
     particles = []
 
-    for (let i = 0; i < 25; i++) {
-        let radius = 50
+    for (let i = 0; i < 55; i++) {
+        let radius = 30
         let x = randomIntFromRange(radius, canvas.width - radius)
         let y = randomIntFromRange(radius, canvas.height - radius)
         let color = randomColor(colors)
